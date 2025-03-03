@@ -19,18 +19,3 @@ This project performs the following steps:
   - **VWAP-based:** Uses a Volume Weighted Average Price over a 50-day rolling window.
 - **Trade Simulation:**  
   Simulate trading based on the generated signals, visualizing trade entries and portfolio performance.
-
-## Requirements
-
-- Python 3.x
-- [pandas](https://pandas.pydata.org/)
-- [numpy](https://numpy.org/)
-- [yfinance](https://pypi.org/project/yfinance/)
-- [statsmodels](https://www.statsmodels.org/)
-- [matplotlib](https://matplotlib.org/)
-- A custom module `trade_simulator` (included in this repository)
-
-Install the dependencies with:
-
-```bash
-pip install -r requirements.txt
