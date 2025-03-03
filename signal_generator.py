@@ -1,5 +1,21 @@
 import pandas as pd
 def signal_generation(stock,data_all,strategy):
+    """
+    Generate trading signals for a given stock and strategy.
+    
+    Parameters:
+        stock (str): The stock ticker (e.g., "AAPL").
+        data_all (pd.DataFrame): A dictionary-like DataFrame with keys "Close" and "Volume".
+                                 Each of these should be a DataFrame with stock tickers as columns.
+        strategy (str): The trading strategy to apply. Options are:
+                        "momentum", "mean_reversion", "breakout", "rsi", "macd", "vwap".
+    
+    Returns:
+        tuple: (long_signal, short_signal, additional_indicators)
+               - long_signal (pd.Series): Boolean series indicating long trade signals.
+               - short_signal (pd.Series): Boolean series indicating short trade signals.
+               - additional_indicators (list): List of Series with key indicators used in the strategy.
+    """
     data=data_all["Close"]
     if strategy == "momentum":
         short_window = 50
