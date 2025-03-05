@@ -4,50 +4,75 @@ from signal_generator import signal_generation
 from trade_simulator import Trade_Simulator
 from sklearn.preprocessing import StandardScaler
 
-def extract_features_labels(stock, data, strategy, window_size=60, feature_days=30, delay=2):
-    """
-    Extracts features and labels from stock data using 60-day rolling windows.
+def get_lookback_days(strategy):
+    """Returns extra lookback days required for each strategy"""
+    if strategy in ["momentum", "mean_reversion"]:
+        return 100  # Needs long-term MA
+    elif strategy in ["macd"]:
+        return 60  # Needs medium-term indicators
+    elif strategy in ["breakout", "rsi", "vwap"]:
+        return 30  # Needs short-term indicators
+    else:
+        return 60  # Default fallback
 
+def extract_features_and_labels(stock, data, strategy, feature_window_length=30, delay=2):
+    """
+    Extracts features from `feature_window_length` days and labels from the next `feature_window_length` days.
+    
     Parameters:
     - stock: str, stock ticker symbol
     - data: pd.DataFrame, stock data (should include 'Close' and 'Volume')
     - strategy: str, trading strategy to evaluate
-    - window_size: int, total length of each window (default = 60 days)
-    - feature_days: int, number of days used for feature extraction (default = 30)
     - delay: int, cooldown period for trading signals in Trade_Simulator
     
     Returns:
-    - X: np.array, extracted feature set (shape: num_samples x num_features x num_days)
+    - X: np.array, extracted feature set (num_samples x num_features x num_days)
     - y: np.array, binary labels (1 = profitable, 0 = not profitable)
     """
+    lookback_days = get_lookback_days(strategy)
+    window_size = feature_window_length
 
     X, y = [], []
-    
-    for start in range(len(data) - window_size):
-        end = start + window_size
-        window_data = data.iloc[start:end]  # Extract rolling 60-day window
-        
-        # 🔹 Normalize Price Data (Z-score normalization)
-        price_data = window_data["Close"][:feature_days].values.reshape(-1, 1)
+    # Iterate over the data to create feature and label windows
+    for start in range(0, len(data) - lookback_days-window_size, window_size):
+        # Extract the data window for feature extraction
+        feature_window = data.iloc[start:start + lookback_days + window_size]
+
+        # Generate trading signals and indicators
+        long_signal, short_signal, indicators = signal_generation(stock, feature_window, strategy)
+        indicators = np.array(indicators)[:, -window_size:]  # Keep only the last `window_size` elements
+
+        # Normalize the closing prices
         price_scaler = StandardScaler()
-        normalized_price = price_scaler.fit_transform(price_data).flatten()
+        normalized_price = price_scaler.fit_transform(
+            data.iloc[start + lookback_days:start + lookback_days + window_size]["Close"].values.reshape(-1, 1)
+        ).flatten()
 
-        # 🔹 Extract Trading Signals & Technical Indicators
-        long_signal, short_signal, features = signal_generation(stock, window_data[:feature_days], strategy)
-        features = np.array(features)  # Convert to numpy array
+        # Normalize the indicators
+        indicator_scaler = StandardScaler()
+        normalized_indicators = indicator_scaler.fit_transform(indicators.T).T
 
-        # 🔹 Combine Normalized Price with Extracted Features
-        all_features = np.vstack([normalized_price, features])  # Stack vertically
-        all_features = all_features.T  # Transpose to match CNN input format
+        # Combine normalized price and indicators
+        combined_features = np.vstack([normalized_price, normalized_indicators])
 
-        # 🔹 Determine Profitability Label from Trade Simulator
-        trade_log = Trade_Simulator(stock, window_data, strategy, stop_loss=False, delay=delay, log=True,plot=False)
-        
-        if trade_log is not None and not trade_log.empty:
-            final_entry = trade_log.iloc[-1]  # Last trade log entry
-            profit = 1 if final_entry["Final Capital"] > 10000 else 0  # Compare to initial capital
+        # Simulate trading to determine profitability
+        trade_log = Trade_Simulator(
+            stock, feature_window, strategy, stop_loss=False, delay=delay, log=True, plot=False, start_trade=lookback_days
+        )
 
-            X.append(all_features)  # Store feature matrix
-            y.append(profit)  # Store label
+        # If no trades were made, label as not profitable
+        if trade_log is None or trade_log.empty:
+            X.append(combined_features)
+            y.append(0)
+            continue
 
+        # Determine if the strategy was profitable
+        final_capital = trade_log.iloc[-1]["Final Capital"]
+        is_profitable = 1 if final_capital > 10000*1.02 else 0
+
+        # Append features and label to the dataset
+        X.append(combined_features)
+        y.append(is_profitable)
+    print(f"Final dataset size: {len(X)} samples")
     return np.array(X), np.array(y)
+
