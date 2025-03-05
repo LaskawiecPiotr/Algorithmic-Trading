@@ -34,7 +34,7 @@ def extract_features_and_labels(stock, data, strategy, feature_window_length=30,
 
     X, y = [], []
     # Iterate over the data to create feature and label windows
-    for start in range(0, len(data) - lookback_days-window_size, window_size):
+    for start in range(0, len(data) - lookback_days-window_size, 10):
         # Extract the data window for feature extraction
         feature_window = data.iloc[start:start + lookback_days + window_size]
 
