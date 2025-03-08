@@ -8,9 +8,9 @@ def get_lookback_days(strategy):
     """Returns extra lookback days required for each strategy"""
     if strategy in ["momentum", "mean_reversion"]:
         return 100  # Needs long-term MA
-    elif strategy in ["macd"]:
+    elif strategy in ["macd","vwap"]:
         return 60  # Needs medium-term indicators
-    elif strategy in ["breakout", "rsi", "vwap"]:
+    elif strategy in ["breakout", "rsi"]:
         return 30  # Needs short-term indicators
     else:
         return 60  # Default fallback
@@ -68,11 +68,10 @@ def extract_features_and_labels(stock, data, strategy, feature_window_length=30,
 
         # Determine if the strategy was profitable
         final_capital = trade_log.iloc[-1]["Final Capital"]
-        is_profitable = 1 if final_capital > 10000*1.02 else 0
+        is_profitable = 1 if final_capital > 10000*1.05 else 0
 
         # Append features and label to the dataset
         X.append(combined_features)
         y.append(is_profitable)
-    print(f"Final dataset size: {len(X)} samples")
     return np.array(X), np.array(y)
 
