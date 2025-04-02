@@ -21,19 +21,13 @@ This project performs the following steps:
   - **MACD-based:** Uses the Moving Average Convergence/Divergence indicator.
   - **VWAP-based:** Uses a Volume Weighted Average Price over a 50-day rolling window.
 
-- **Machine Learning Forecasting:**  
-  For each strategy, a dedicated neural network was trained to forecast the profitability of applying the strategy under current market conditions. This predictive layer helps prioritize strategies based on expected returns, achieving:
-  - ~70% overall classification accuracy,
-  - ~90% accuracy in identifying historically profitable strategy applications.
-
 - **Trade Simulation:**  
   Simulate trading based on the generated signals, visualizing trade entries, exits, and portfolio performance.
 
 - **Visualization:**  
   Plot trade signals, technical indicators, and portfolio value over time for clear performance insights.
-
-## Goals
-
-- Demonstrate traditional strategy logic in a quantitative framework.
-- Introduce a machine learning layer to guide strategy selection.
-- Provide a foundation for more advanced trading research and development.
+  
+- **Machine Learning Forecasting:**  
+  For each strategy, a dedicated neural network was trained to forecast the profitability of applying the strategy under current market conditions. This predictive layer helps prioritize strategies based on expected returns, achieving:
+  - ~70% overall classification accuracy,
+  - ~90% accuracy in identifying historically profitable strategy applications.
