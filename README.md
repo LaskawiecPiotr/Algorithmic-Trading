@@ -30,4 +30,4 @@ This project performs the following steps:
 - **Machine Learning Forecasting:**  
   For each strategy, a dedicated neural network was trained to forecast the profitability of applying the strategy under current market conditions. This predictive layer helps prioritize strategies based on expected returns, achieving:
   - ~70% overall classification accuracy,
-  - ~90% accuracy in identifying historically profitable strategy applications.
+  - ~90% precision, the accuracy was driven down by high FNR. In this context we desire high precision, even we risk missing some opportunities for porift.
